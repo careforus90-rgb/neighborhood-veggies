@@ -1,12 +1,14 @@
 const initialState = {
   farmers: [],
-  loading: false,
-  error: null,
   selectedFarmer: null,
-  farmerProducts: []
+  farmerDetails: null,
+  farmerProducts: [],
+  farmerStats: null,
+  loading: false,
+  error: null
 };
 
-export default function farmersReducer(state = initialState, action) {
+const farmersReducer = (state = initialState, action) => {
   switch (action.type) {
     case 'FETCH_FARMERS_START':
       return {
@@ -18,25 +20,37 @@ export default function farmersReducer(state = initialState, action) {
       return {
         ...state,
         farmers: action.payload,
-        loading: false,
-        error: null
+        loading: false
       };
     case 'FETCH_FARMERS_FAILURE':
       return {
         ...state,
-        loading: false,
-        error: action.payload
+        error: action.payload,
+        loading: false
       };
-    case 'SET_SELECTED_FARMER':
+    case 'FETCH_FARMER_DETAILS_START':
       return {
         ...state,
-        selectedFarmer: action.payload.farmer,
-        farmerProducts: action.payload.products || []
+        loading: true,
+        error: null
+      };
+    case 'FETCH_FARMER_DETAILS_SUCCESS':
+      return {
+        ...state,
+        farmerDetails: action.payload,
+        loading: false
+      };
+    case 'FETCH_FARMER_DETAILS_FAILURE':
+      return {
+        ...state,
+        error: action.payload,
+        loading: false
       };
     case 'FETCH_FARMER_PRODUCTS_START':
       return {
         ...state,
-        loading: true
+        loading: true,
+        error: null
       };
     case 'FETCH_FARMER_PRODUCTS_SUCCESS':
       return {
@@ -47,37 +61,66 @@ export default function farmersReducer(state = initialState, action) {
     case 'FETCH_FARMER_PRODUCTS_FAILURE':
       return {
         ...state,
-        loading: false,
-        error: action.payload
+        error: action.payload,
+        loading: false
       };
-    case 'UPDATE_FARMER_PROFILE':
+    case 'FILTER_FARMERS_START':
+      return {
+        ...state,
+        loading: true,
+        error: null
+      };
+    case 'FILTER_FARMERS_SUCCESS':
+      return {
+        ...state,
+        farmers: action.payload,
+        loading: false
+      };
+    case 'FILTER_FARMERS_FAILURE':
+      return {
+        ...state,
+        error: action.payload,
+        loading: false
+      };
+    case 'SET_SELECTED_FARMER':
+      return {
+        ...state,
+        selectedFarmer: action.payload
+      };
+    case 'ADD_FARMER_REVIEW':
+      return {
+        ...state,
+        farmerDetails: {
+          ...state.farmerDetails,
+          reviews: [...(state.farmerDetails.reviews || []), action.payload.review]
+        }
+      };
+    case 'FOLLOW_FARMER':
       return {
         ...state,
         farmers: state.farmers.map(farmer =>
-          farmer.id === action.payload.id ? action.payload : farmer
-        ),
-        selectedFarmer: state.selectedFarmer?.id === action.payload.id
-          ? action.payload
-          : state.selectedFarmer
-      };
-    case 'ADD_FARMER_PRODUCT':
-      return {
-        ...state,
-        farmerProducts: [...state.farmerProducts, action.payload]
-      };
-    case 'REMOVE_FARMER_PRODUCT':
-      return {
-        ...state,
-        farmerProducts: state.farmerProducts.filter(product => product.id !== action.payload)
-      };
-    case 'UPDATE_FARMER_PRODUCT':
-      return {
-        ...state,
-        farmerProducts: state.farmerProducts.map(product =>
-          product.id === action.payload.id ? action.payload : product
+          farmer.id === action.payload
+            ? { ...farmer, isFollowed: true }
+            : farmer
         )
+      };
+    case 'UNFOLLOW_FARMER':
+      return {
+        ...state,
+        farmers: state.farmers.map(farmer =>
+          farmer.id === action.payload
+            ? { ...farmer, isFollowed: false }
+            : farmer
+        )
+      };
+    case 'FETCH_FARMER_STATS_SUCCESS':
+      return {
+        ...state,
+        farmerStats: action.payload
       };
     default:
       return state;
   }
-}
+};
+
+export default farmersReducer;
